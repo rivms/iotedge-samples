@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using NodaTime;
 
 namespace IdentityTranslationModule
 {
@@ -21,6 +23,7 @@ namespace IdentityTranslationModule
     {
 
         private readonly ILogger logger;
+        private readonly ILoggerFactory loggerFactory; 
         private string IOTEDGE_TRUSTED_CA_CERTIFICATE_PEM_PATH;
         private string MODULE_VERSION;
          private string IOTEDGE_DEVICEID;
@@ -34,13 +37,16 @@ namespace IdentityTranslationModule
 
         private int Counter = 0;
 
-        private IConfiguration Configuration; 
+        private IConfiguration Configuration;
+        private IClock clock;
 
         private CompositeDeviceClientConnectionManager ConnectionManager {get; set;}
 
         
         public IdentityTranslationService(ILogger<IdentityTranslationService> logger,
             IHostApplicationLifetime applicationLifetime,
+            IClock clock, 
+            ILoggerFactory loggerFactory, 
             IConfiguration config) 
         {
             Console.WriteLine("Hello Service!");
@@ -49,9 +55,11 @@ namespace IdentityTranslationModule
             IOTEDGE_DEVICEID = config.GetValue<string>("IOTEDGE_DEVICEID");
             IOTEDGE_MODULEID = config.GetValue<string>("IOTEDGE_MODULEID");
             IOTEDGE_IOTHUBHOSTNAME = config.GetValue<string>("IOTEDGE_IOTHUBHOSTNAME");
+            this.clock = clock;
 
             logger.LogInformation($"Environment:\nModule Version: {MODULE_VERSION}\nDeviceId: {IOTEDGE_DEVICEID}\nModuleID: {IOTEDGE_MODULEID}\nIoTHubHostName: {IOTEDGE_IOTHUBHOSTNAME}");
             this.logger = logger;
+            this.loggerFactory = loggerFactory; 
             logger.LogInformation($"CA Cert path is: {IOTEDGE_TRUSTED_CA_CERTIFICATE_PEM_PATH}");
             this.Configuration = config; 
 
@@ -123,7 +131,7 @@ namespace IdentityTranslationModule
 
             logger.LogInformation($"Created logger for connection manager {dl}");
             // TODO: Pass reference to logger factory or refactor to inject factories in general for client dependencies
-            ConnectionManager = new CompositeDeviceClientConnectionManager(Host.Services, Configuration,  repo, 
+            ConnectionManager = new CompositeDeviceClientConnectionManager(loggerFactory, Configuration,  repo, clock,
                 dl);
 
             await ConnectionManager.StartAsync(stopToken);

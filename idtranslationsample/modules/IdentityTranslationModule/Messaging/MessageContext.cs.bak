@@ -14,7 +14,7 @@ namespace IdentityTranslationModule.Messaging
 
         public CompositeDeviceClient Client { get; private set; }    
 
-        public MqttActionResult Result {get; set;}
+        public MqttResult Result {get; set;}
 
         public MessageContext(CompositeDeviceClient client, 
             MqttApplicationMessageReceivedEventArgs eventArgs, 

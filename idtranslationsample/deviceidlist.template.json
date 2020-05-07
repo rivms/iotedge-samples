@@ -3,40 +3,13 @@
         {
             "iothubDeviceId": "",
             "sasKey": "",
-            "localDeviceId": "localdevice001",
-            "mqttBrokerAddress": "",
-            "mqttBrokerPort": 1883,
-            "mqttUserName": "",
-            "mqttPassword": "",
-            "iotEdgeController": "DeviceMqttController",
-            "mqttController": "DeviceMqttController",
-            "localDeviceMqttSubscriptions": {
-                "deviceToCloudTopics": [{"name": "d2c", "topic": "home/localdevice001/d2c/"}]
-            },
-            "localDeviceMqttPublications": {
-                "cloudToDevice": [{"name": "c2d", "topic": "home/localdevice001/c2d/"}],
-                "directMethods": [{"name":"dm", "topic":"home/localdevice001/dm/"}],
-                "twin": [{"name": "twin", "topic":"home/localdevice001/twin/res/"}]
-            }
+            "localDeviceId": ""
         },
         {
             "iothubDeviceId": "",
             "sasKey": "",
-            "localDeviceId": "localdevice002",
-            "mqttBrokerAddress": "",
-            "mqttBrokerPort": 1883,
-            "mqttUserName": "",
-            "mqttPassword": "",
-            "iotEdgeController": "DeviceMqttController",
-            "mqttController": "DeviceMqttController",
-            "localDeviceMqttSubscriptions": {
-                "deviceToCloudTopics": [{"name": "d2c", "topic": "home/localdevice002/d2c/"}]
-            },
-            "localDeviceMqttPublications": {
-                "cloudToDevice": [{"name": "c2d", "topic": "home/localdevice002/c2d/"}],
-                "directMethods": [{"name":"dm", "topic":"home/localdevice002/dm/"}],
-                "twin": [{"name": "twin", "topic":"home/localdevice002/twin/res/"}]
-            }
+            "localDeviceId": ""
         }
+
     ]
 }

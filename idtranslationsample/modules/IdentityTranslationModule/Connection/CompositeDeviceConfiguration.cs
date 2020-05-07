@@ -19,6 +19,9 @@ namespace IdentityTranslationModule.Connection
                 [JsonProperty("deviceToCloudTopics")]
                 public List<MqttTopic> DeviceToCloudTopics {get; set;}
 
+                [JsonProperty("twinRequestTopics")]
+                public List<MqttTopic> TwinRequestTopics { get; set; }
+
                 [JsonProperty("decoder")]
                 public string Decoder {get; set;}
             }

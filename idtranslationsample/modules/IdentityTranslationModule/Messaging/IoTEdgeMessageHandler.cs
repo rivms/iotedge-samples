@@ -13,8 +13,11 @@ namespace IdentityTranslationModule.Messaging
     {
 
         private const string c2dTopicPattern = @"devices/(?<deviceId>.+)/messages/devicebound/(?<propertyBag>.*)";
+        private const string twinResponseTopicPattern = @"\$iothub/twin/res/(\d+)/(\?.+)";
+        
         private static readonly TimeSpan regexTimeoutMilliseconds = TimeSpan.FromMilliseconds(500);
         private Regex c2dTopicRegex = new Regex(c2dTopicPattern, RegexOptions.Compiled, regexTimeoutMilliseconds);
+        private Regex twinResponseTopicRegex = new Regex(twinResponseTopicPattern, RegexOptions.Compiled, regexTimeoutMilliseconds);
 
         private readonly IDeviceIotEdgeController controller; 
         public IoTEdgeMessageHandler(IDeviceIotEdgeController controller, ILogger<IoTEdgeMessageHandler> logger) : base(logger)
@@ -32,12 +35,16 @@ namespace IdentityTranslationModule.Messaging
 
             logger.LogInformation($"Matching topic: {topic}");
 
+
+            // Separate twin messages from 
+
             // determine the message type based on the responded to topic
-            var match = this.c2dTopicRegex.Match(topic);
-            if (match.Success)
+            var c2dMatch = this.c2dTopicRegex.Match(topic);
+            var twinResponseMatch = twinResponseTopicRegex.Match(topic);
+            if (c2dMatch.Success)
             {
-                var d = match.Groups[1].Value;
-                var pb = match.Groups[2].Value;
+                var d = c2dMatch.Groups[1].Value;
+                var pb = c2dMatch.Groups[2].Value;
 
 
                 logger.LogInformation($"Found c2d");
@@ -46,6 +53,20 @@ namespace IdentityTranslationModule.Messaging
                 
                 var result = controller.CloudToDeviceMessage(e.ApplicationMessage, properties);
                 context.Result = result;
+            }
+            else if (twinResponseMatch.Success)
+            {
+                var responseCode = twinResponseMatch.Groups[1].Value;
+                var ridProperty = twinResponseMatch.Groups[2].Value;
+
+                var rid = ridProperty.Split('=')[1].TrimEnd('/');
+
+
+                logger.LogInformation($"Twin response received with status {responseCode} and rid property {ridProperty}");
+                //var result = controller.DeviceTwin();
+                var result = controller.DeviceTwin(e.ApplicationMessage, responseCode, rid, context.Client.TwinStateLifecycle.LastRequestId);
+                context.Result = result;
+
             }
 
             await Task.CompletedTask;

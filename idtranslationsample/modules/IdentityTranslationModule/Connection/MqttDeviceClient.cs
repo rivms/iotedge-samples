@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IdentityTranslationModule.Controller;
 using IdentityTranslationModule.Messaging;
 using Microsoft.Extensions.Logging;
 using MQTTnet;
@@ -33,7 +32,8 @@ namespace IdentityTranslationModule.Connection
 
             if (mCtxt.Result != null) 
             {
-                await ProcessResult(mCtxt.Result, stopToken);
+                //await ProcessResult(mCtxt.Result, stopToken);
+                await mCtxt.Result.ExecuteResultAsync(mCtxt, stopToken);
             }       
             else 
             {
@@ -44,7 +44,10 @@ namespace IdentityTranslationModule.Connection
             await Task.CompletedTask;
         }
 
-        private async Task ProcessResult(MqttResult result, CancellationToken stopToken) 
+
+        /*
+
+        private async Task ProcessResult(PublishToTopicResult result, CancellationToken stopToken) 
         {
             switch (result) 
             {
@@ -52,6 +55,16 @@ namespace IdentityTranslationModule.Connection
                 {
                     logger.LogInformation("Processing DeviceToCloudResult");
                     await compositeClient.SendUpstreamMessage(result.Payload, d2c.PropertyBag, stopToken);
+                    break;
+                }
+                case TwinRequestResult twin:
+                {
+
+                }
+                case NoResult nr:
+                {
+
+                    logger.LogInformation("Warning NoResult returned");
                     break;
                 }
                 default:
@@ -63,7 +76,7 @@ namespace IdentityTranslationModule.Connection
             }
             await Task.CompletedTask;
         }
-
+        */
     }
 
 

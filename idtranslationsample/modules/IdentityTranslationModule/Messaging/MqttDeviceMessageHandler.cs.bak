@@ -31,30 +31,10 @@ namespace IdentityTranslationModule.Messaging
             var topic = e.ApplicationMessage.Topic;
 
 
-            
+            var result = controller.DeviceToCloudMessage(e.ApplicationMessage);
+
+            context.Result = result;
             logger.LogInformation($"Matching topic: {topic}");
-
-            
-
-
-            if (context.Client.GetLocalDeviceSubscriptionCategoryForTopic(topic) == Connection.LocalDeviceSubscriptionCategory.TwinRequestTopics)
-            {
-                logger.LogInformation($"Topic {topic} matches category {Connection.LocalDeviceSubscriptionCategory.TwinRequestTopics}");
-
-                // Ask controller to handle twin request
-                var result = controller.TwinRequest(context.Client.TwinStateLifecycle, e.ApplicationMessage);
-
-                
-
-                context.Result = result;
-            }
-            else
-            {
-                logger.LogInformation($"Topic {topic} not matched to any category");
-                var result = controller.DeviceToCloudMessage(e.ApplicationMessage);
-
-                context.Result = result;
-            }
 
             // determine the message type based on the responded to topic
             var match = this.c2dTopicRegex.Match(topic);
@@ -72,11 +52,5 @@ namespace IdentityTranslationModule.Messaging
 
             await Task.CompletedTask;
         }
-
-        public void GetTopicCategory(string topic)
-        {
-
-        }
-
     }
 }

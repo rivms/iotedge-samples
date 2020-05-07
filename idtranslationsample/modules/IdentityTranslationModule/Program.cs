@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using NodaTime;
 
 namespace IdentityTranslationModule
 {
@@ -61,6 +62,7 @@ namespace IdentityTranslationModule
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
+                    services.AddSingleton<IClock>(SystemClock.Instance);
                     services.AddSingleton<IdentityTranslationService>();
                     services.AddHostedService<IdentityTranslationBackgroundServiceWrapper>();
                 })

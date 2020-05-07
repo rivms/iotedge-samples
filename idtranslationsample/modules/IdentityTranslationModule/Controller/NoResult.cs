@@ -1,11 +1,13 @@
 namespace IdentityTranslationModule.Controller
 {
 
-    public class NoResult : MqttResult 
+    public class NoResult : MqttActionResult 
     {
-        public NoResult() : base(null, null)
+        public NoResult() 
         {
+
         }
+
     }
 }
 

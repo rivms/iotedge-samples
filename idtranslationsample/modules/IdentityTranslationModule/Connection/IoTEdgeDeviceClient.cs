@@ -33,7 +33,7 @@ namespace IdentityTranslationModule.Connection
 
             if (mCtxt.Result != null)
             {
-                await ProcessResult(mCtxt.Result, stopToken);
+                await ProcessResult(mCtxt.Result, mCtxt, stopToken);
             }
             else
             {
@@ -44,25 +44,26 @@ namespace IdentityTranslationModule.Connection
             await Task.CompletedTask;
         }
 
-        private async Task ProcessResult(MqttResult result, CancellationToken stopToken)
+        private async Task ProcessResult(MqttActionResult result, MessageContext context, CancellationToken stopToken)
         {
-            switch (result)
-            {
-                case CloudToDeviceResult c2d:
-                    {
-                        logger.LogInformation("Processing DeviceToCloudResult");
-                        //await compositeClient.SendDow(result.Payload, d2c.PropertyBag, stopToken);
-                        await compositeClient.SendCloudToDeviceMessage(result.TopicName, result.Payload, stopToken);
-                        break;
-                    }
-                default:
-                    {
-                        logger.LogError($"Unexpected MqttResult type {result.GetType()}");
-                        break;
-                    }
+            await result.ExecuteResultAsync(context, stopToken);
+            //switch (result)
+            //{
+            //    case CloudToDeviceResult c2d:
+            //        {
+            //            logger.LogInformation("Processing DeviceToCloudResult");
+            //            //await compositeClient.SendDow(result.Payload, d2c.PropertyBag, stopToken);
+            //            await compositeClient.SendCloudToDeviceMessage(result.TopicName, result.Payload, stopToken);
+            //            break;
+            //        }
+            //    default:
+            //        {
+            //            logger.LogError($"Unexpected MqttResult type {result.GetType()}");
+            //            break;
+            //        }
 
-            }
-            await Task.CompletedTask;
+            //}
+            //await Task.CompletedTask;
         }
 
     }

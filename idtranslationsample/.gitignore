@@ -3,6 +3,7 @@ deviceidlist.json
 .env
 !.env.template
 !deviceidlist.template.json
+config/
 
 # https://raw.githubusercontent.com/github/gitignore/master/Global/VisualStudioCode.gitignore
 .vscode/*

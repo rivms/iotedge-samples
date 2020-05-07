@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
 using MQTTnet;
 using IdentityTranslationModule.Messaging;
 using IdentityTranslationModule.Controller;
+using NodaTime;
 
 namespace IdentityTranslationModule.Connection
 {
@@ -18,13 +18,15 @@ namespace IdentityTranslationModule.Connection
         private IDeviceRepository deviceRepository;
         private readonly MqttFactory factory;
         private readonly IDictionary<string, CompositeDeviceClient> deviceClients;
+        private IClock clock;
          
         private readonly IList<CompositeDeviceClient> connectedClients = new List<CompositeDeviceClient>();
-        private IServiceProvider provider;
+        //private IServiceProvider provider;
+        private ILoggerFactory loggerFactory;
 
         private IConfiguration Configuration; 
 
-        public CompositeDeviceClientConnectionManager(IServiceProvider provider, IConfiguration config, IDeviceRepository repository, ILogger<CompositeDeviceClientConnectionManager> logger)
+        public CompositeDeviceClientConnectionManager(ILoggerFactory loggerFactory, IConfiguration config, IDeviceRepository repository, IClock clock, ILogger<CompositeDeviceClientConnectionManager> logger)
         {
             this.deviceRepository = repository;
             this.logger = logger; 
@@ -33,7 +35,8 @@ namespace IdentityTranslationModule.Connection
             factory = new MqttFactory();
             deviceClients = new Dictionary<string, CompositeDeviceClient>();
             this.Configuration = config;
-            this.provider = provider;
+            this.loggerFactory = loggerFactory;
+            this.clock = clock;
         }
 
         public async Task StartAsync(CancellationToken stopToken)
@@ -84,7 +87,8 @@ namespace IdentityTranslationModule.Connection
                         d,
                         handler,
                         mqttHandler,
-                        provider);
+                        clock, 
+                        loggerFactory);
 
                     await client.Connect(stopToken);
                     logger.LogInformation($"mqttSubscription: {d.LocalDeviceMqttSubscriptions.DeviceToCloudTopics[0]}");
@@ -103,18 +107,18 @@ namespace IdentityTranslationModule.Connection
         private Messaging.MessageHandler CreateMqttMessageHandler(string controllerName)
         {
             // TODO: Create controller based on controller name
-            var m = new MqttNetMessageHandler(provider.GetRequiredService<ILogger<MqttNetMessageHandler>>());
-            var controller = new DeviceMqttController(provider.GetRequiredService<ILogger<DeviceMqttController>>());
-            var mqtt = new MqttDeviceMessageHandler(controller, provider.GetRequiredService<ILogger<MqttDeviceMessageHandler>>());
+            var m = new MqttNetMessageHandler(loggerFactory.CreateLogger<MqttNetMessageHandler>());
+            var controller = new DeviceMqttController(loggerFactory.CreateLogger<DeviceMqttController>());
+            var mqtt = new MqttDeviceMessageHandler(controller, loggerFactory.CreateLogger<MqttDeviceMessageHandler>());
             m.SetNext(mqtt);
             return m;
         }
         private Messaging.MessageHandler CreateIoTEdgeMessageHandler(string controllerName) 
         {
             // TODO: Create controller based on controller name
-            var m = new MqttNetMessageHandler(provider.GetRequiredService<ILogger<MqttNetMessageHandler>>());
-            var controller = new DeviceIotEdgeController(provider.GetRequiredService<ILogger<DeviceIotEdgeController>>());
-            var edge = new IoTEdgeMessageHandler(controller, provider.GetRequiredService<ILogger<IoTEdgeMessageHandler>>());
+            var m = new MqttNetMessageHandler(loggerFactory.CreateLogger<MqttNetMessageHandler>());
+            var controller = new DeviceIotEdgeController(loggerFactory.CreateLogger<DeviceIotEdgeController>());
+            var edge = new IoTEdgeMessageHandler(controller, loggerFactory.CreateLogger<IoTEdgeMessageHandler>());
             m.SetNext(edge);
             return m;
         }
