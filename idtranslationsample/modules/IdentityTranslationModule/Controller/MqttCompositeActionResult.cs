@@ -1,20 +1,18 @@
-﻿using IdentityTranslationModule.Messaging;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+using IdentityTranslationModule.Messaging;
 
 namespace IdentityTranslationModule.Controller
 {
     public class MqttCompositeActionResult : MqttActionResult
     {
-
         private List<MqttActionResult> actions = new List<MqttActionResult>();
 
         public MqttCompositeActionResult()
         {
-
         }
-
 
         public void Add(MqttActionResult result)
         {

@@ -1,10 +1,10 @@
+using MQTTnet;
+
 using IdentityTranslationModule.Connection;
 using IdentityTranslationModule.Controller;
-using MQTTnet;
 
 namespace IdentityTranslationModule.Messaging
 {
-
     public class MessageContext
     {
         public BaseMessage Message { get; set;}

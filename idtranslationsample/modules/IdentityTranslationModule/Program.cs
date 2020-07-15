@@ -2,24 +2,24 @@ using System;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using NodaTime;
 
 namespace IdentityTranslationModule
 {
     class Program
     {
-
         static void Main(string[] args)
         {
-
-            Console.WriteLine("Creating HostBuilderZZZ");
+            Console.WriteLine("Creating HostBuilder");
             var host = CreateHostBuilder(args).UseConsoleLifetime().Build();
 
-             var logger = host.Services.GetRequiredService<ILogger<Program>>();
+            var logger = host.Services.GetRequiredService<ILogger<Program>>();
             var service = host.Services.GetService<IdentityTranslationService>();
 
             if (service ==  null) {
@@ -33,18 +33,10 @@ namespace IdentityTranslationModule
                 logger.LogInformation("Singleton found!");
             }
 
-            logger.LogInformation("-------------------------===============*****************");
-            //service.Host = host;
-            // logger.LogInformation("HostBuilder created.");
             var tBuild = host.RunAsync();
 
             tBuild.Wait();
             Console.WriteLine("Built HostBuilder");
-            //var tInit = Init();
-
-            
-            
-            //Task.WaitAll(new Task[] {tBuild, tInit});
 
             // Wait until the app unloads or is cancelled
             var cts = new CancellationTokenSource();
@@ -81,6 +73,5 @@ namespace IdentityTranslationModule
             cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).SetResult(true), tcs);
             return tcs.Task;
         }
-       
     }
 }

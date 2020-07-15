@@ -1,6 +1,8 @@
-﻿using IdentityTranslationModule.Controller;
+﻿using System.Threading.Tasks;
+
 using NodaTime;
-using System.Threading.Tasks;
+
+using IdentityTranslationModule.Controller;
 
 namespace IdentityTranslationModule.Connection
 {
@@ -35,7 +37,6 @@ namespace IdentityTranslationModule.Connection
         {
             await Task.CompletedTask;
         }
-
 
         private async Task HandleDeviceTwinResponse()
         {

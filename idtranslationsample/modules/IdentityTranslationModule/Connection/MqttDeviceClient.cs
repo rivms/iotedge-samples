@@ -1,8 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
-using IdentityTranslationModule.Messaging;
+
 using Microsoft.Extensions.Logging;
+
 using MQTTnet;
+
+using IdentityTranslationModule.Messaging;
 
 namespace IdentityTranslationModule.Connection
 {

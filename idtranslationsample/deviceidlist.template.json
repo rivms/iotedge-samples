@@ -3,13 +3,25 @@
         {
             "iothubDeviceId": "",
             "sasKey": "",
-            "localDeviceId": ""
-        },
-        {
-            "iothubDeviceId": "",
-            "sasKey": "",
-            "localDeviceId": ""
+            "localDeviceId": "localdevice001",
+            "mqttBrokerAddress": "127.0.0.1",
+            "mqttBrokerPort": 1883,
+            "mqttUseCleanSession": false,
+            "mqttUserName": "",
+            "mqttPassword": "",
+            "mqttCACertificateFile": "",
+            "mqttClientCertificateFile": "",
+            "mqttClientKeyFile": "",
+            "iotEdgeController": "DeviceMqttController",
+            "mqttController": "DeviceMqttController",
+            "localDeviceMqttSubscriptions": {
+                "deviceToCloudTopics": [{"name": "d2c", "topic": "home/localdevice001/d2c/"}]
+            },
+            "localDeviceMqttPublications": {
+                "cloudToDevice": [{"name": "c2d", "topic": "home/localdevice001/c2d/"}],
+                "directMethods": [{"name":"dm", "topic":"home/localdevice001/dm/"}],
+                "twin": [{"name": "twin", "topic":"home/localdevice001/twin/res/"}]
+            }
         }
-
     ]
 }

@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 
 namespace IdentityTranslationModule.Messaging
 {
-
     public enum MessageDirection
     {
         UpstreamToDownstream = 1,
@@ -13,7 +12,6 @@ namespace IdentityTranslationModule.Messaging
     public abstract class BaseMessage
     {
         private readonly MessageDirection direction;
-
         protected readonly string topic; 
         protected readonly ReadOnlyCollection<byte> payload;
 

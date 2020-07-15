@@ -1,21 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.Azure.Devices.Client.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Options;
 using MQTTnet.Formatter;
 using MQTTnet.Protocol;
+
 using NodaTime;
+
 using static IdentityTranslationModule.Connection.CompositeDeviceConfiguration.Device;
 
 namespace IdentityTranslationModule.Connection
 {
-
     public enum LocalDeviceSubscriptionCategory
     {
         Unknown = 0,
@@ -43,8 +49,6 @@ namespace IdentityTranslationModule.Connection
         Start = 0,
         Connected = 1
     }
-
-    
 
     public sealed class CompositeDeviceClient
     {
@@ -90,7 +94,6 @@ namespace IdentityTranslationModule.Connection
             return new CompositeDeviceClient(device, upstreamClientCredentials, downstreamClientCredentials, upstreamToDownstream, downstreamToUpstream, clock, loggerFactory);
         }
 
-
         private CompositeDeviceClient(CompositeDeviceConfiguration.Device device, 
             IotHubDeviceCredentials upstreamDeviceCredentials, 
             MqttBrokerCredentials downstreamClientCredentials, 
@@ -123,7 +126,6 @@ namespace IdentityTranslationModule.Connection
             iotEdgeClient = new IotEdgeDeviceClient(this, upstreamToDownstream, loggerFactory.CreateLogger <IotEdgeDeviceClient>());
         }
 
-
         public void AddTopicsToDictionary(IEnumerable<MqttTopic> topics, IDictionary<string, MqttTopic> mapping)
         {
             foreach(var t in topics)
@@ -132,19 +134,91 @@ namespace IdentityTranslationModule.Connection
             }
         }
 
-
         private async Task ConnectionMqttDeviceClient(CancellationToken stopToken)
         {
             downstreamClient = factory.CreateMqttClient();
 
-            var downstreamOptions = new MqttClientOptionsBuilder()
+            var optionsBuilder = new MqttClientOptionsBuilder()
                 .WithClientId(downstreamClientCredentials.ClientId)
                 .WithTcpServer(downstreamClientCredentials.BrokerAddress, downstreamClientCredentials.BrokerPort)
-                .WithCredentials(downstreamClientCredentials.UserName, downstreamClientCredentials.Password)
-               // .WithTls()
-                .WithCleanSession()
-                .Build();
+                .WithCleanSession(this.device.MqttUseCleanSession);
 
+            if (downstreamClientCredentials.UseCredentials)
+            {
+                optionsBuilder = optionsBuilder.WithCredentials(downstreamClientCredentials.UserName, downstreamClientCredentials.Password);
+            }
+
+            if (downstreamClientCredentials.UseTls)
+            {
+                IList<X509Certificate2> certificates = new List<X509Certificate2>();
+                var caCert = new X509Certificate2(downstreamClientCredentials.CACertificateFile);
+                var clientCert = new X509Certificate2(downstreamClientCredentials.ClientCertificateFile);
+                X509Certificate2 clientCertPrivateKeyPair = null;
+
+                certificates.Add(caCert);
+
+                if (downstreamClientCredentials.RequiresClientKeyFile) 
+                {
+                    byte[] privateKeyBuffer = GetPrivateKeyBytesFromPem(downstreamClientCredentials.ClientKeyFile, out TlsAlgorithm algorithm);
+                    switch (algorithm)
+                    {
+                        case TlsAlgorithm.ECC:
+                            var ecdsa = ECDsa.Create();
+                            ecdsa.ImportECPrivateKey(privateKeyBuffer, out _);
+                            clientCertPrivateKeyPair = clientCert.CopyWithPrivateKey(ecdsa);
+                            break;
+                        case TlsAlgorithm.RSA:
+                            var rsa = RSA.Create();
+                            rsa.ImportRSAPrivateKey(privateKeyBuffer, out _);
+                            clientCertPrivateKeyPair = clientCert.CopyWithPrivateKey(rsa);
+                            break;
+                        case TlsAlgorithm.Unknown:
+                            throw new Exception("Failed to detect private key algorithm");
+                    }
+
+                    certificates.Add(clientCertPrivateKeyPair);
+                }
+                else
+                {
+                    certificates.Add(clientCert);
+                }
+                
+                // Add the CA certificate to the users CA store
+                using (var caCertStore = new X509Store(StoreName.CertificateAuthority, StoreLocation.CurrentUser)) 
+                { 
+                    caCertStore.Open(OpenFlags.ReadWrite); 
+                    caCertStore.Add(caCert); 
+                }
+
+                // Add the client certificate to the users personal store
+                using (var personalCertsStore = new X509Store(StoreName.My, StoreLocation.CurrentUser)) 
+                { 
+                    personalCertsStore.Open(OpenFlags.ReadWrite); 
+                    if (clientCertPrivateKeyPair != null)
+                    {
+                        personalCertsStore.Add(clientCertPrivateKeyPair);
+                    }
+                    else
+                    {
+                        personalCertsStore.Add(clientCert);
+                    }
+                }
+
+                optionsBuilder = optionsBuilder.WithTls(new MqttClientOptionsBuilderTlsParameters {
+                    Certificates = certificates,
+                    UseTls = true,
+                    AllowUntrustedCertificates = false,
+                    IgnoreCertificateChainErrors = false,
+                    IgnoreCertificateRevocationErrors = true,
+                    CertificateValidationHandler = (MqttClientCertificateValidationCallbackContext c) =>
+                                    {
+                                        Console.WriteLine("Certificate--> issuer: " + c.Certificate.Issuer + " subject: " + c.Certificate.Subject);
+                                        return true;
+                                    }                      
+                });
+            }
+            
+            var downstreamOptions = optionsBuilder.Build();
 
             try 
             {
@@ -158,7 +232,7 @@ namespace IdentityTranslationModule.Connection
                     foreach (var topic in device.LocalDeviceMqttSubscriptions.DeviceToCloudTopics)
                     {
                         logger.LogDebug($"Subscribing to topic {topic}");
-                        await downstreamClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic.Topic).Build());
+                        await downstreamClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(topic.Topic).Build());
                     }
 
 
@@ -167,7 +241,7 @@ namespace IdentityTranslationModule.Connection
                     foreach (var topic in device.LocalDeviceMqttSubscriptions.TwinRequestTopics)
                     {
                         logger.LogDebug($"Subscribing to topic {topic}");
-                        await downstreamClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic.Topic).Build());
+                        await downstreamClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(topic.Topic).Build());
                     }
                     await Task.CompletedTask;
                 });
@@ -188,6 +262,35 @@ namespace IdentityTranslationModule.Connection
                 logger.LogError($"{ex}");
             }
             await Task.CompletedTask;
+        }
+
+        private static byte[] GetPrivateKeyBytesFromPem(string privateKeyFile, out TlsAlgorithm algorithm)
+        {
+            string pemString = File.ReadAllText(privateKeyFile);
+
+            string header = string.Empty;
+            string footer = string.Empty;
+
+            if (pemString.StartsWith("-----BEGIN EC PRIVATE KEY-----", StringComparison.InvariantCulture))
+            {
+                header = "-----BEGIN EC PRIVATE KEY-----";
+                footer = "-----END EC PRIVATE KEY-----";
+                algorithm = TlsAlgorithm.ECC;
+            }
+            else if (pemString.StartsWith("-----BEGIN RSA PRIVATE KEY-----", StringComparison.InvariantCulture))
+            {
+                header = "-----BEGIN RSA PRIVATE KEY-----";
+                footer = "-----END RSA PRIVATE KEY-----";
+                algorithm = TlsAlgorithm.RSA;
+            }
+            else
+            {
+                algorithm = TlsAlgorithm.Unknown;
+            }
+
+            int start = pemString.IndexOf(header) + header.Length;
+            int end = pemString.IndexOf(footer, start) - start;
+            return Convert.FromBase64String(pemString.Substring(start, end));
         }
 
         private async Task ConnectIoTEdgeDeviceClient(CancellationToken stopToken)
@@ -221,7 +324,7 @@ namespace IdentityTranslationModule.Connection
                     logger.LogInformation($"Device {upstreamClientCredentials.DeviceId} connected");
                     // Subscribe to cloud to device messages
                     var topic = $"devices/{upstreamClientCredentials.DeviceId}/messages/devicebound/#";
-                    await upstreamClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).Build());
+                    await upstreamClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(topic).Build());
 
                     // Initialise twin handling
                     //TwinStateLifecycle twinState = new TwinStateLifecycle(clock, upstreamClient);
@@ -236,9 +339,6 @@ namespace IdentityTranslationModule.Connection
                 
                 upstreamClient.UseApplicationMessageReceivedHandler( async e => {
                     await iotEdgeClient.HandleMessage(e, stopToken);
-
-                    
-
                 } );
 
                 await upstreamClient.ConnectAsync(upstreamOptions, stopToken);
@@ -281,7 +381,7 @@ namespace IdentityTranslationModule.Connection
 
         public async Task SubscribeUpstream(string topic, CancellationToken stopToken)
         {
-            await upstreamClient.SubscribeAsync(new TopicFilterBuilder().WithTopic(topic).Build());
+            await upstreamClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic(topic).Build());
         }
 
         public async Task SendUpstreamMessage(string topic, string payload, IDictionary<string, string> propertyBag, CancellationToken stopToken)
@@ -320,7 +420,6 @@ namespace IdentityTranslationModule.Connection
             if (category == LocalDeviceMqttPublicationCategory.Twin)
             {
                 // if topic name is null send to all topics
-
                 foreach (var t in device.LocalDeviceMqttPublications.Twin)
                 {
                     var t1 = t.Topic.Trim('/') + "/" + propertyUrlString;  // Ensure topic ends with a forward slash /                  
@@ -349,14 +448,8 @@ namespace IdentityTranslationModule.Connection
 
                         await downstreamClient.PublishAsync(msg, stopToken);
                     }
- 
                 }
-
             }
-
-            
-
-            
         }
 
         public async Task SendCloudToDeviceMessage(string topicKey, string payload, CancellationToken stopToken)
@@ -414,7 +507,6 @@ namespace IdentityTranslationModule.Connection
             }
 
             // Search twinRequestTopics
-
             foreach ( var t in device.LocalDeviceMqttSubscriptions.TwinRequestTopics)
             {
                 var t1 = t.Topic.TrimEnd('/') + "/"; // Ensure topic ends with a forward slash /
@@ -426,7 +518,5 @@ namespace IdentityTranslationModule.Connection
             }
             return LocalDeviceSubscriptionCategory.Unknown;
         }
-
     }
-
 }
