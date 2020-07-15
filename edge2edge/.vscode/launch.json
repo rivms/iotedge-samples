@@ -28,7 +28,7 @@
       "name": "edge2edgemodule Local Debug (.NET Core)",
       "type": "coreclr",
       "request": "launch",
-      "program": "${workspaceRoot}/modules/edge2edgemodule/bin/Debug/netcoreapp2.1/edge2edgemodule.dll",
+      "program": "${workspaceRoot}/modules/edge2edgemodule/bin/Debug/netcoreapp3.1/edge2edgemodule.dll",
       "args": [],
       "cwd": "${workspaceRoot}/modules/edge2edgemodule",
       "internalConsoleOptions": "openOnSessionStart",

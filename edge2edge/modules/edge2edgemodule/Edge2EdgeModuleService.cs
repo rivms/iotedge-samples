@@ -68,7 +68,6 @@ namespace edge2edgemodule
 
             logger.LogInformation($"Conn1: {conn1}\nConn2: {conn2}\nVersion: {version}");
 
-
             MqttTransportSettings mqttSetting = new MqttTransportSettings(TransportType.Mqtt_Tcp_Only);
             ITransportSettings[] settings = { mqttSetting };
 
@@ -147,7 +146,6 @@ namespace edge2edgemodule
             logger.LogInformation("==>End: StartAsync");
 
             //return Task.CompletedTask;
-
         }
 
         private void InstallCACert()

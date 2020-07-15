@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/idtranslationsample/modules/IdentityTranslationModule/bin/Debug/netcoreapp2.1/IdentityTranslationModule.dll",
+            "program": "${workspaceFolder}/idtranslationsample/modules/IdentityTranslationModule/bin/Debug/netcoreapp3.1/IdentityTranslationModule.dll",
             "args": [],
             "cwd": "${workspaceFolder}/idtranslationsample/modules/IdentityTranslationModule",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
