@@ -5,7 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using IdentityTranslationModule.Connection;
+
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Client.Transport.Mqtt;
 using Microsoft.Azure.Devices.Shared;
@@ -13,15 +13,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+
 using NodaTime;
+
+using IdentityTranslationModule.Connection;
 
 namespace IdentityTranslationModule
 {
-
     class IdentityTranslationService 
     {
-
         private readonly ILogger logger;
         private readonly ILoggerFactory loggerFactory; 
         private string IOTEDGE_TRUSTED_CA_CERTIFICATE_PEM_PATH;
@@ -77,13 +77,10 @@ namespace IdentityTranslationModule
          private async Task<bool> Init(CancellationToken stopToken)
         {
             IDictionary envVariables = Environment.GetEnvironmentVariables();
-
             var conn1 = this.GetValueFromEnvironment(envVariables, EdgehubConnectionstringVariableName);
-
             var version = this.GetValueFromEnvironment(envVariables, "MODULE_VERSION");
 
             logger.LogInformation($"Conn1: {conn1}\n");
-
 
             MqttTransportSettings mqttSetting = new MqttTransportSettings(TransportType.Mqtt_Tcp_Only);
             ITransportSettings[] settings = { mqttSetting };
@@ -131,8 +128,7 @@ namespace IdentityTranslationModule
 
             logger.LogInformation($"Created logger for connection manager {dl}");
             // TODO: Pass reference to logger factory or refactor to inject factories in general for client dependencies
-            ConnectionManager = new CompositeDeviceClientConnectionManager(loggerFactory, Configuration,  repo, clock,
-                dl);
+            ConnectionManager = new CompositeDeviceClientConnectionManager(loggerFactory, Configuration,  repo, clock, dl);
 
             await ConnectionManager.StartAsync(stopToken);
           
@@ -153,7 +149,6 @@ namespace IdentityTranslationModule
             logger.LogInformation("==>End: StartAsync");
 
             //return Task.CompletedTask;
-
         }
 
         private void InstallCACert()
@@ -183,8 +178,6 @@ namespace IdentityTranslationModule
                 Console.WriteLine("CA_CERTIFICATE_PATH was not set or null, not installing any CA certificate");
             }
         }
-
-
  
         async Task<MessageResponse> PipeMessage(Message message, object userContext)
         {

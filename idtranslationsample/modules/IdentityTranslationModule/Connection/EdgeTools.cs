@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Extensions.Configuration;
 
@@ -21,7 +22,10 @@ namespace IdentityTranslationModule.Connection
                 BrokerPort = device.MqttBrokerPort,
                 ClientId = device.LocalDeviceId,
                 Password = device.MqttPassword,
-                UserName = device.MqttUserName
+                UserName = device.MqttUserName,
+                CACertificateFile = device.MqttCACertificateFile,
+                ClientCertificateFile = device.MqttClientCertificateFile,
+                ClientKeyFile = device.MqttClientKeyFile
             };
             return m;
         }

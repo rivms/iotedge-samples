@@ -57,7 +57,7 @@
             "env": {
               "IOTEDGE_TRUSTED_CA_CERTIFICATE_PEM_PATH": {
                 "value": "/iotedgecerts/azure-iot-test-only.root.ca.cert.pem"
-            }  
+              }  
             },
             "status": "running",
             "restartPolicy": "always",

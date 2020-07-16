@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using Newtonsoft.Json;
 
 namespace IdentityTranslationModule.Connection
@@ -51,6 +52,9 @@ namespace IdentityTranslationModule.Connection
             [JsonProperty("localDeviceId")]
             public string LocalDeviceId {get; set;}
 
+            [JsonProperty("mqttUseCleanSession")]
+            public bool MqttUseCleanSession {get;set;}
+
             [JsonProperty("mqttBrokerAddress")]
             public string MqttBrokerAddress {get; set;}
 
@@ -62,6 +66,15 @@ namespace IdentityTranslationModule.Connection
 
             [JsonProperty("mqttPassword")]
             public string MqttPassword {get; set;}
+
+            [JsonProperty("mqttCACertificateFile")]
+            public string MqttCACertificateFile {get;set;}
+
+            [JsonProperty("mqttClientCertificateFile")]
+            public string MqttClientCertificateFile {get;set;}
+
+            [JsonProperty("mqttClientKeyFile")]
+            public string MqttClientKeyFile {get;set;}
 
             [JsonProperty("iotEdgeController")]
             public string IotEdgeController { get; set; }

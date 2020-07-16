@@ -1,6 +1,8 @@
-using IdentityTranslationModule.Connection;
 using Microsoft.Extensions.Logging;
+
 using MQTTnet;
+
+using IdentityTranslationModule.Connection;
 
 namespace IdentityTranslationModule.Controller
 {

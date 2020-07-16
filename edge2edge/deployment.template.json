@@ -56,6 +56,11 @@
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
+            "env": {
+              "IOTEDGE_TRUSTED_CA_CERTIFICATE_PEM_PATH": {
+                "value": "/iotedgecerts/azure-iot-test-only.root.ca.cert.pem"
+              }  
+            },
             "settings": {
               "image": "${MODULES.edge2edgemodule}",
               "createOptions": {}

@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+
 using MQTTnet;
+using NodaTime;
+
 using IdentityTranslationModule.Messaging;
 using IdentityTranslationModule.Controller;
-using NodaTime;
 
 namespace IdentityTranslationModule.Connection
 {
-
     public class CompositeDeviceClientConnectionManager 
     {
         private readonly ILogger logger;
@@ -122,12 +124,5 @@ namespace IdentityTranslationModule.Connection
             m.SetNext(edge);
             return m;
         }
-
-
-
-        
-
-
-
     }
 }

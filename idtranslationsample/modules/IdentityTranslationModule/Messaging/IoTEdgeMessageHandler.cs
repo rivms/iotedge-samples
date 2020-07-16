@@ -2,16 +2,16 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using IdentityTranslationModule.Controller;
+
 using Microsoft.Azure.Devices.Client.Common;
 using Microsoft.Extensions.Logging;
 
+using IdentityTranslationModule.Controller;
+
 namespace IdentityTranslationModule.Messaging
 {
-
     public class IoTEdgeMessageHandler : MessageHandler
     {
-
         private const string c2dTopicPattern = @"devices/(?<deviceId>.+)/messages/devicebound/(?<propertyBag>.*)";
         private const string twinResponseTopicPattern = @"\$iothub/twin/res/(\d+)/(\?.+)";
         
@@ -30,11 +30,9 @@ namespace IdentityTranslationModule.Messaging
             logger.LogInformation("To Do: Translate IoT Edge messages into controller calls");
             var e = context.MqttMessage;
            
-
             var topic = e.ApplicationMessage.Topic;
 
             logger.LogInformation($"Matching topic: {topic}");
-
 
             // Separate twin messages from 
 
@@ -49,7 +47,7 @@ namespace IdentityTranslationModule.Messaging
 
                 logger.LogInformation($"Found c2d");
 
-                var properties = UrlEncodedDictionarySerializer.Deserialize( pb, 0);
+                var properties = UrlEncodedDictionarySerializer.Deserialize(pb, 0);
                 
                 var result = controller.CloudToDeviceMessage(e.ApplicationMessage, properties);
                 context.Result = result;
@@ -60,13 +58,10 @@ namespace IdentityTranslationModule.Messaging
                 var ridProperty = twinResponseMatch.Groups[2].Value;
 
                 var rid = ridProperty.Split('=')[1].TrimEnd('/');
-
-
                 logger.LogInformation($"Twin response received with status {responseCode} and rid property {ridProperty}");
-                //var result = controller.DeviceTwin();
+                
                 var result = controller.DeviceTwin(e.ApplicationMessage, responseCode, rid, context.Client.TwinStateLifecycle.LastRequestId);
                 context.Result = result;
-
             }
 
             await Task.CompletedTask;

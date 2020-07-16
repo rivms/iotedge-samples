@@ -28,7 +28,7 @@
       "name": "IdentityTranslationModule Local Debug (.NET Core)",
       "type": "coreclr",
       "request": "launch",
-      "program": "${workspaceRoot}/modules/IdentityTranslationModule/bin/Debug/netcoreapp2.1/IdentityTranslationModule.dll",
+      "program": "${workspaceRoot}/modules/IdentityTranslationModule/bin/Debug/netcoreapp3.1/IdentityTranslationModule.dll",
       "args": [],
       "cwd": "${workspaceRoot}/modules/IdentityTranslationModule",
       "internalConsoleOptions": "openOnSessionStart",

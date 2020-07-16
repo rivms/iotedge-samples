@@ -1,7 +1,8 @@
-﻿using IdentityTranslationModule.Connection;
-using IdentityTranslationModule.Messaging;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+
+using IdentityTranslationModule.Connection;
+using IdentityTranslationModule.Messaging;
 
 namespace IdentityTranslationModule.Controller
 {
@@ -9,6 +10,7 @@ namespace IdentityTranslationModule.Controller
     {
         public LocalDeviceMqttPublicationCategory Category { get; private set; }
         public string Payload { get; private set; }
+
         public PublishToLocalDeviceTopicResult(LocalDeviceMqttPublicationCategory category, string payload)
         {
             Category = category;

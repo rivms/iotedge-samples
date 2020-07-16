@@ -1,7 +1,8 @@
-﻿using IdentityTranslationModule.Messaging;
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
+using IdentityTranslationModule.Messaging;
 
 namespace IdentityTranslationModule.Controller
 {
