@@ -176,6 +176,8 @@ namespace IdentityTranslationModule.Connection
                             throw new Exception("Failed to detect private key algorithm");
                     }
 
+                    // Export the certificate in PFX format to ensure the private key is included
+                    clientCertPrivateKeyPair = new X509Certificate2(clientCertPrivateKeyPair.Export(X509ContentType.Pfx));
                     certificates.Add(clientCertPrivateKeyPair);
                 }
                 else
@@ -211,10 +213,10 @@ namespace IdentityTranslationModule.Connection
                     IgnoreCertificateChainErrors = false,
                     IgnoreCertificateRevocationErrors = true,
                     CertificateValidationHandler = (MqttClientCertificateValidationCallbackContext c) =>
-                                    {
-                                        Console.WriteLine("Certificate--> issuer: " + c.Certificate.Issuer + " subject: " + c.Certificate.Subject);
-                                        return true;
-                                    }                      
+                    {
+                        Console.WriteLine("Certificate--> issuer: " + c.Certificate.Issuer + " subject: " + c.Certificate.Subject);
+                        return true;
+                    }                      
                 });
             }
             
